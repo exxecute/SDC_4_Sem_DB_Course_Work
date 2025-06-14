@@ -1,10 +1,10 @@
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
-CREATE SERVER coursework_server
+CREATE SERVER IF NOT EXISTS coursework_server
 FOREIGN DATA WRAPPER postgres_fdw
 OPTIONS (host 'localhost', dbname 'OLTP', port '5432');
 
-CREATE USER MAPPING FOR CURRENT_USER
+CREATE USER MAPPING IF NOT EXISTS FOR CURRENT_USER
 SERVER coursework_server
 OPTIONS (user 'postgres', password '7585');
 
@@ -104,7 +104,7 @@ JOIN status s ON o.status_id = s.status_id
 JOIN order_items oi ON o.orders_id = oi.orders_id
 JOIN items i ON oi.item_id = i.item_id
 JOIN DimItem di ON di.serial_number = i.serial_number
-WHERE da.admin_key IS NOT NULL
+WHERE da.admin_key IS NOT NULL 
 AND NOT EXISTS (
     SELECT 1 FROM FactSales fs
     JOIN DimItem di2 ON fs.item_key = di2.item_key
