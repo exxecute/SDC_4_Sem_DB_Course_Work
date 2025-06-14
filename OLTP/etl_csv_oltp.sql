@@ -1,143 +1,96 @@
-DROP TABLE IF EXISTS staging_products CASCADE;
+-- ETL: Load data via staging tables and merge
 
 -- 1. Roles
-COPY Roles(role_name)
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\roles.csv'
-DELIMITER ','
-CSV HEADER;
+DROP TABLE IF EXISTS tmp_roles CASCADE;
+CREATE TEMP TABLE tmp_roles(role_name TEXT);
+COPY tmp_roles FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\roles.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Roles(role_name)
+SELECT DISTINCT role_name FROM tmp_roles
+ON CONFLICT (role_name) DO NOTHING;
 
--- 2. Categories
-COPY Categories(category_name)
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\categories.csv'
-DELIMITER ','
-CSV HEADER;
+-- 2. Status
+DROP TABLE IF EXISTS tmp_status CASCADE;
+CREATE TEMP TABLE tmp_status(status_name TEXT);
+COPY tmp_status FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\status.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Status(status_name)
+SELECT DISTINCT status_name FROM tmp_status
+ON CONFLICT (status_name) DO NOTHING;
 
--- 3. Status
-COPY Status(status_name)
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\status.csv'
-DELIMITER ','
-CSV HEADER;
+-- 3. Categories
+DROP TABLE IF EXISTS tmp_categories CASCADE;
+CREATE TEMP TABLE tmp_categories(category_name TEXT);
+COPY tmp_categories FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\categories.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Categories(category_name)
+SELECT DISTINCT category_name FROM tmp_categories
+ON CONFLICT (category_name) DO NOTHING;
 
 -- 4. Customers
-COPY Customers(customer_email, first_name, last_name)
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\customers.csv'
-DELIMITER ','
-CSV HEADER;
+DROP TABLE IF EXISTS tmp_customers CASCADE;
+CREATE TEMP TABLE tmp_customers(customer_email TEXT, first_name TEXT, last_name TEXT);
+COPY tmp_customers FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\customers.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Customers(customer_email, first_name, last_name)
+SELECT DISTINCT customer_email, first_name, last_name FROM tmp_customers
+ON CONFLICT (customer_email) DO NOTHING;
 
--- 5. Products: используем staging-таблицу для связывания category_name → category_id
-CREATE TEMP TABLE staging_products (
-    product_name TEXT,
-    category_name TEXT,
-    model_number TEXT,
-    price NUMERIC,
-    manufactured_date DATE
-);
-
-COPY staging_products
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\products.csv'
-DELIMITER ','
-CSV HEADER;
-
-INSERT INTO Products (product_name, category_id, model_number, price, manufactured_date)
-SELECT
-    sp.product_name,
-    c.category_id,
-    sp.model_number,
-    sp.price,
-    sp.manufactured_date
-FROM staging_products sp
-JOIN Categories c ON sp.category_name = c.category_name
-ON CONFLICT (model_number) DO NOTHING;
-
-CREATE TEMP TABLE staging_admins (
-    username TEXT,
-    password TEXT,
-    admin_email TEXT,
-    first_name TEXT,
-    last_name TEXT,
-    role_name TEXT
-);
-
-COPY staging_admins
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\administrators.csv'
-DELIMITER ','
-CSV HEADER;
-
-INSERT INTO Administrators (username, password, first_name, last_name, role_id)
-SELECT
-    s.username,
-    s.password,
-    s.first_name,
-    s.last_name,
-    r.role_id
-FROM staging_admins s
-JOIN Roles r ON s.role_name = r.role_name
+-- 5. Administrators
+DROP TABLE IF EXISTS tmp_admins CASCADE;
+CREATE TEMP TABLE tmp_admins(username TEXT, password TEXT, admin_email TEXT, first_name TEXT, last_name TEXT, role_name TEXT);
+COPY tmp_admins FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\administrators.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Administrators(username, password, first_name, last_name, role_id)
+SELECT DISTINCT a.username, a.password, a.first_name, a.last_name, r.role_id
+FROM tmp_admins a
+JOIN Roles r ON r.role_name = a.role_name
 ON CONFLICT (username) DO NOTHING;
 
-CREATE TEMP TABLE staging_items (
-    serial_number TEXT,
-    model_number TEXT
-);
+-- 6. Products
+DROP TABLE IF EXISTS tmp_products CASCADE;
+CREATE TEMP TABLE tmp_products(product_name TEXT, category_name TEXT, model_number TEXT, price NUMERIC, manufactured_date DATE);
+COPY tmp_products FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\products.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Products(product_name, category_id, model_number, price, manufactured_date)
+SELECT DISTINCT p.product_name, c.category_id, p.model_number, p.price, p.manufactured_date
+FROM tmp_products p
+JOIN Categories c ON c.category_name = p.category_name
+ON CONFLICT (model_number) DO NOTHING;
 
-COPY staging_items
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\items.csv'
-DELIMITER ','
-CSV HEADER;
-
-INSERT INTO Items (product_id, serial_number)
-SELECT
-    p.product_id,
-    s.serial_number
-FROM staging_items s
-JOIN Products p ON s.model_number = p.model_number
+-- 7. Items
+DROP TABLE IF EXISTS tmp_items CASCADE;
+CREATE TEMP TABLE tmp_items(serial_number TEXT, model_number TEXT);
+COPY tmp_items FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\items.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Items(serial_number, product_id)
+SELECT DISTINCT i.serial_number, p.product_id
+FROM tmp_items i
+JOIN Products p ON p.model_number = i.model_number
 ON CONFLICT (serial_number) DO NOTHING;
 
-CREATE TEMP TABLE staging_orders (
-    order_number TEXT,
-    customer_email TEXT,
-    username TEXT,
-    order_date TIMESTAMP,
-    shipping_address TEXT,
-    total_amount NUMERIC,
-    order_status TEXT
-);
-
-COPY staging_orders
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\orders.csv'
-DELIMITER ','
-CSV HEADER;
-
-INSERT INTO Orders (order_number, order_date, shipping_address, admin_id, customer_id, status_id)
-SELECT
-    s.order_number,
-    s.order_date,
-    s.shipping_address,
-    a.admin_id,
-    c.customer_id,
-    st.status_id
-FROM staging_orders s
-LEFT JOIN Administrators a ON s.username = a.username
-JOIN Customers c ON s.customer_email = c.customer_email
-JOIN Status st ON s.order_status = st.status_name
+-- 8. Orders
+DROP TABLE IF EXISTS tmp_orders CASCADE;
+CREATE TEMP TABLE tmp_orders(order_number TEXT, customer_email TEXT, username TEXT, order_date TIMESTAMP, shipping_address TEXT, total_amount NUMERIC, order_status TEXT);
+COPY tmp_orders FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\orders.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Orders(order_number, customer_id, admin_id, order_date, shipping_address, status_id)
+SELECT DISTINCT o.order_number, c.customer_id, a.admin_id, o.order_date, o.shipping_address, s.status_id
+FROM tmp_orders o
+JOIN Customers c ON c.customer_email = o.customer_email
+LEFT JOIN Administrators a ON a.username = o.username
+JOIN Status s ON s.status_name = o.order_status
 ON CONFLICT (order_number) DO NOTHING;
 
-CREATE TEMP TABLE staging_order_items (
-    order_number TEXT,
-    serial_number TEXT,
-    unit_price NUMERIC
-);
+-- 9. Order Items
+DROP TABLE IF EXISTS tmp_order_items CASCADE;
+CREATE TEMP TABLE tmp_order_items(order_number TEXT, serial_number TEXT, unit_price NUMERIC);
+COPY tmp_order_items FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\order_items.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Order_Items(orders_id, item_id, unit_price)
+SELECT o.orders_id, i.item_id, t.unit_price
+FROM tmp_order_items t
+JOIN Orders o ON o.order_number = t.order_number
+JOIN Items i ON i.serial_number = t.serial_number
+ON CONFLICT (orders_id, item_id) DO NOTHING;
 
-COPY staging_order_items
-FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\order_items.csv'
-DELIMITER ','
-CSV HEADER;
-
-INSERT INTO Order_Items (orders_id, item_id, unit_price)
-SELECT
-    o.orders_id,
-    i.item_id,
-    s.unit_price
-FROM staging_order_items s
-JOIN Orders o ON s.order_number = o.order_number
-JOIN Items i ON s.serial_number = i.serial_number
-ON CONFLICT DO NOTHING;
+-- 10. Inventory
+DROP TABLE IF EXISTS tmp_inventory CASCADE;
+CREATE TEMP TABLE tmp_inventory(serial_number TEXT, last_updated TIMESTAMP, location TEXT);
+COPY tmp_inventory FROM 'A:\Study\SDC\4sem\SDC_4_Sem_DB_Course_Work\CSV\inventory.csv' DELIMITER ',' CSV HEADER;
+INSERT INTO Inventory(item_id, last_updated, location)
+SELECT i.item_id, t.last_updated, t.location
+FROM tmp_inventory t
+JOIN Items i ON i.serial_number = t.serial_number
+ON CONFLICT (item_id) DO NOTHING;

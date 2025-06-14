@@ -3,3 +3,4 @@ ORD-2023-0001,john.doe@example.com,admin_user,01/06/2023 10:00,"123 Main St, Any
 ORD-2023-0002,jane.smith@example.com,sales_clerk,05/06/2023 14:30,"456 Oak Ave, Otherville, USA",3200.5,Processing
 ORD-2023-0003,john.doe@example.com,manager_bob,10/06/2023 09:00,"789 Pine Ln, Anyplace, USA",4500,Pending
 ORD-2023-0004,mike.williams@example.com,sales_clerk,01/05/2023 10:00,"101 River Rd, Nowhere, USA",999.99,Completed
+ORD-2023-0005,john.doe@example.com,sales_clerk,02/05/2023 10:00,"101 River Rd, Nowhere, USA",999.99,Completed
