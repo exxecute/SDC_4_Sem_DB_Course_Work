@@ -8,10 +8,6 @@ CREATE USER MAPPING IF NOT EXISTS FOR CURRENT_USER
 SERVER coursework_server
 OPTIONS (user 'postgres', password '7585');
 
-IMPORT FOREIGN SCHEMA public
-FROM SERVER coursework_server
-INTO public;
-
 -- 1. DimDate
 INSERT INTO DimDate (date_key, day, month, month_name, year)
 SELECT DISTINCT
