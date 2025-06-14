@@ -53,7 +53,7 @@ CREATE TABLE FactSales (
     fact_sales_key SERIAL PRIMARY KEY,
     date_key DATE NOT NULL REFERENCES DimDate(date_key) ON DELETE CASCADE,
     customer_key INT NOT NULL REFERENCES DimCustomer(customer_key) ON DELETE CASCADE,
-    admin_key INT NOT NULL REFERENCES DimAdministrator(admin_key) ON DELETE CASCADE,
+    admin_key INT REFERENCES DimAdministrator(admin_key) ON DELETE CASCADE,
     item_key INT NOT NULL REFERENCES DimItem(item_key) ON DELETE CASCADE,
     address VARCHAR(255) NOT NULL,
     status VARCHAR(100) NOT NULL
