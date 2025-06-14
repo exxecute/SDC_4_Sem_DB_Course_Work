@@ -1,0 +1,5 @@
+username,password,admin_email,first_name,last_name,role_name
+admin_user,pass123,admin@example.com,Alice,Admin,Admin
+manager_bob,bobpass,bob@example.com,Bob,Manager,Manager
+clerk,salespass,sales@example.com,Charlie,Sales,Sales
+support_guy,helppass,support@example.com,David,Support,Support

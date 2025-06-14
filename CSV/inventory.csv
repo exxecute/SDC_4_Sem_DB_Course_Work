@@ -1,0 +1,5 @@
+serial_number,last_updated,location
+OP-100-SN002,01/06/2023 08:00,"Warehouse A, Shelf 1"
+NV-3000-SN004,01/06/2023 09:00,"Warehouse B, Rack 2"
+HX-PRO-SN006,01/06/2023 10:00,"Warehouse C, Aisle 3"
+IE-500-SN007,01/06/2023 11:00,"Testing Lab, Bench 5"
