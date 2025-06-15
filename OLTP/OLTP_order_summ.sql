@@ -1,4 +1,5 @@
--- Order summ
+DROP VIEW IF EXISTS v_customer_order_totals CASCADE;
+
 CREATE OR REPLACE VIEW v_customer_order_totals AS
 SELECT 
     c.customer_email,

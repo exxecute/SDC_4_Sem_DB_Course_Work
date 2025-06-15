@@ -1,4 +1,5 @@
--- Full info for orders
+DROP VIEW IF EXISTS v_order_details CASCADE;
+
 CREATE OR REPLACE VIEW v_order_details AS
 SELECT 
     o.order_number,

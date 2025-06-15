@@ -1,4 +1,5 @@
--- Current Inventory
+DROP VIEW IF EXISTS v_inventory_view CASCADE;
+
 CREATE OR REPLACE VIEW v_inventory_view AS
 SELECT 
     i.serial_number,
