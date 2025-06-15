@@ -1,5 +1,6 @@
--- current inventory
-CREATE VIEW vw_inventory_current AS
+DROP VIEW IF EXISTS vw_FactSalesDetails CASCADE;
+
+CREATE OR REPLACE VIEW vw_FactSalesDetails AS
 SELECT
     fi.fact_inventory_key,
     fi.item_key,

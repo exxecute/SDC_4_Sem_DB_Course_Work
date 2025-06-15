@@ -1,4 +1,5 @@
--- orders with full info
+DROP VIEW IF EXISTS vw_sales_detailed CASCADE;
+
 CREATE VIEW vw_sales_detailed AS
 SELECT
     fs.fact_sales_key,
